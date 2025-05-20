@@ -20,7 +20,7 @@ mongoose.connect(process.env.MONGO_URI, {
 .catch(err => console.error('❌ Erreur MongoDB :', err));
 
 // === MODÈLE UTILISATEUR ===
-const User = require('./user'); // Assure-toi que ton fichier user.js est dans un dossier 'models'
+const user = require('./models/User'); // Assure-toi que ton fichier user.js est dans un dossier 'models'
 
 // === ROUTES ===
 
