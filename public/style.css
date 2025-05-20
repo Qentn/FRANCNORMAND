@@ -1,0 +1,158 @@
+/* === Styles importés depuis l'ancien index.html === */
+/* === Variables globales de couleurs et polices === */
+:root {
+  --red: #c8102e;           /* Rouge Normandie */
+  --yellow: #ffd100;        /* Jaune Normandie */
+  --bg-dark: #121212;       /* Fond sombre principal */
+  --text-light: #f5f5f5;    /* Texte clair */
+  --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Police utilisée partout */
+}
+
+/* Applique un comportement prévisible à tous les éléments */
+* {
+  box-sizing: border-box;
+}
+
+/* Corps de la page et html global : fond noir, texte clair, police, sans scroll horizontal */
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: var(--font-main);
+  background-color: var(--bg-dark);
+  color: var(--text-light);
+  overflow-x: hidden;
+}
+
+/* === Carrousel principal (slides plein écran horizontal) === */
+.slider {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  scroll-snap-type: x mandatory;   /* Effet snap slide par slide */
+  scroll-behavior: smooth;         /* Défilement fluide */
+  -webkit-overflow-scrolling: touch; /* Défilement fluide sur mobile */
+}
+
+/* === Chaque slide === */
+.slide {
+  flex: none;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  scroll-snap-align: start;       /* Chaque slide s’aligne au début */
+  position: relative;
+  padding: 0 10vw;
+  text-align: center;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.8s ease;
+  user-select: none;
+}
+
+/* Overlay sombre sur chaque slide pour faire ressortir le texte */
+.slide::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 20, 20, 0.7);  /* Noir semi-transparent */
+  z-index: 1;
+}
+
+/* Contenu positionné au-dessus de l’overlay */
+.slide-content {
+  position: relative;
+  z-index: 2;
+  max-width: 700px;
+}
+
+/* === Titres principaux dans les slides === */
+h1 {
+  font-size: clamp(2rem, 5vw, 4rem); /* Taille adaptable */
+  font-weight: 900;
+  margin-bottom: 0.3em;
+  letter-spacing: 0.05em;
+  color: var(--yellow);
+  text-transform: uppercase;
+  text-shadow: 0 0 10px var(--yellow); /* Effet lumineux */
+}
+
+/* === Paragraphes dans les slides === */
+p {
+  font-size: clamp(1rem, 1.5vw, 1.5rem);
+  line-height: 1.6;
+  color: #ddd;
+  margin-bottom: 2em;
+}
+
+/* === Boutons stylés transparents avec effet lumineux au survol === */
+.btn {
+  font-weight: 700;
+  font-size: 1.2rem;
+  padding: 0.7em 2.5em;
+  border: 2px solid var(--yellow);
+  background: transparent;
+  color: var(--yellow);
+  text-transform: uppercase;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease;
+  letter-spacing: 0.1em;
+  user-select: none;
+}
+
+/* Survol des boutons : fond jaune, texte sombre, ombre lumineuse */
+.btn:hover {
+  background: var(--yellow);
+  color: var(--bg-dark);
+  box-shadow: 0 0 20px var(--yellow);
+}
+
+/* === Petits ronds de navigation entre les slides === */
+.pagination {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 15px;
+  z-index: 10;
+}
+
+/* Style de chaque rond */
+.pagination button {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 209, 0, 0.3); /* Jaune semi-transparent */
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+/* Rond actif (slide en cours) */
+.pagination button.active {
+  background: var(--yellow);
+  box-shadow: 0 0 8px var(--yellow);
+}
+
+/* === Adaptation mobile (moins de 600px de large) === */
+@media (max-width: 600px) {
+  h1 {
+    font-size: 2.5rem;
+  }
+
+  p {
+    font-size: 1rem;
+  }
+
+  .btn {
+    padding: 0.6em 2em;
+    font-size: 1rem;
+  }
+}
