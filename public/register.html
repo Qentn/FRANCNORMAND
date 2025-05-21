@@ -44,6 +44,8 @@
           const wallet = accounts[0];
           document.getElementById('walletAddress').value = wallet;
           document.getElementById('walletStatus').textContent = `Portefeuille connecté : ${wallet.slice(0, 6)}...${wallet.slice(-4)}`;
+          document.getElementById('walletAddress').type = 'text';
+          document.getElementById('walletAddress').style.display = 'none';
           document.getElementById('registerForm').style.display = 'flex';
 
           // Ici, déclencher le transfert de tokens côté backend après inscription
