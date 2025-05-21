@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard | FrancNormand</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="dashboard-layout">
+
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar">
+      <h2>FrancNormand</h2>
+      <nav>
+        <ul>
+          <li><a href="#">Accueil</a></li>
+          <li><a href="#">Mon portefeuille</a></li>
+          <li><a href="#">Acheter</a></li>
+          <li><a href="#">Envoyer</a></li>
+          <li><a href="/logout">Déconnexion</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Contenu principal -->
+    <main class="dashboard-main">
+      <header class="dashboard-header">
+        <h1 id="welcomeTitle">Bienvenue</h1>
+        <p>Portefeuille connecté : <span id="walletAddress">0x...</span></p>
+      </header>
+
+      <section class="dashboard-grid">
+        <div class="dashboard-card balance-card">
+          <h2>Solde actuel</h2>
+          <p id="balance">152.34 NORM</p>
+        </div>
+
+        <div class="dashboard-card actions-card">
+          <h2>Actions rapides</h2>
+          <button class="btn" onclick="alert('Fonction acheter à venir')">Acheter du NORM</button>
+          <button class="btn" onclick="alert('Fonction envoyer à venir')">Envoyer des NORM</button>
+        </div>
+
+        <div class="dashboard-card info-card">
+          <h2>Dernières activités</h2>
+          <ul class="activity-log">
+            <li>+25 NORM reçus - Bienvenue 🎉</li>
+            <li>-12.5 NORM envoyés à 0xabc...</li>
+            <li>+50 NORM achetés via carte</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    async function loadUserData() {
+      try {
+        const res = await fetch('/me');
+        if (!res.ok) throw new Error('Non connecté');
+        const user = await res.json();
+
+        document.getElementById("welcomeTitle").textContent = `Bienvenue ${user.username}`;
+        document.getElementById("walletAddress").textContent = user.wallet || "Non connecté";
+
+        // Si plus tard tu veux gérer le solde dynamiquement :
+        // document.getElementById("balance").textContent = `${user.balance} NORM`;
+      } catch (err) {
+        console.error(err);
+        window.location.href = "/auth.html"; // redirige si non connecté
+      }
+    }
+
+    loadUserData();
+  </script>
+</body>
+</html>

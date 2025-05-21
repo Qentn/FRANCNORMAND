@@ -4,20 +4,57 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Inscription | FrancNormand</title>
-  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.6.2/dist/ethers.min.js"></script>
 </head>
 <body>
   <div class="auth-container">
     <h2>Créer un compte</h2>
-    <form action="/register" method="POST">
+
+    <!-- Explication pour les nouveaux utilisateurs -->
+    <p style="font-size: 0.95rem; line-height: 1.5; color: #ccc; text-align: center; margin-bottom: 20px;">
+      Avant de créer un compte, il est nécessaire de connecter un portefeuille via <strong>MetaMask</strong>.<br>
+      MetaMask est un outil simple et sécurisé permettant de gérer des cryptomonnaies directement dans le navigateur.<br>
+      FrancNormand agit simplement comme un pont technique pour établir la connexion entre votre compte utilisateur et votre portefeuille.
+    </p>
+
+    <!-- Connexion ou création du portefeuille -->
+    <button class="btn" onclick="connectWallet()">Se connecter avec MetaMask</button>
+    <p id="walletStatus" style="margin-top: 10px; text-align: center;"></p>
+
+    <!-- Formulaire d'inscription désactivé jusqu'à connexion du portefeuille -->
+    <form id="registerForm" action="/register" method="POST" style="display:none">
+      <input type="hidden" name="wallet" id="walletAddress" />
       <input type="text" name="username" placeholder="Nom d'utilisateur" required />
       <input type="email" name="email" placeholder="Email" required />
       <input type="password" name="password" placeholder="Mot de passe" required />
       <button type="submit">S’inscrire</button>
     </form>
+
     <div class="toggle">
-      Déjà inscrit ? <a href="/auth.html">Se connecter</a>
+      Déjà inscrit ? <a href="auth.html">Se connecter</a>
     </div>
   </div>
+
+  <script>
+    async function connectWallet() {
+      if (typeof window.ethereum !== 'undefined') {
+        try {
+          const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+          const wallet = accounts[0];
+          document.getElementById('walletAddress').value = wallet;
+          document.getElementById('walletStatus').textContent = `Portefeuille connecté : ${wallet.slice(0, 6)}...${wallet.slice(-4)}`;
+          document.getElementById('registerForm').style.display = 'flex';
+
+          // Ici, déclencher le transfert de tokens côté backend après inscription
+        } catch (err) {
+          console.error(err);
+          document.getElementById('walletStatus').textContent = 'Erreur lors de la connexion au portefeuille.';
+        }
+      } else {
+        document.getElementById('walletStatus').textContent = 'MetaMask non détecté. Veuillez l’installer pour continuer.';
+      }
+    }
+  </script>
 </body>
 </html>
