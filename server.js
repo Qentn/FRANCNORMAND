@@ -58,7 +58,13 @@ app.get('/login', (req, res) => {
 
 // Inscription
 app.post('/register', async (req, res) => {
-  const { username, email, password, wallet } = req.body;
+  let { username, email, password, wallet } = req.body;
+
+  // Nettoyage des entrées
+  username = username.trim();
+  email = email.trim();
+  wallet = wallet.trim();
+  password = password.trim();
 
   // 🔐 VALIDATION AVANT TOUT
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -92,10 +98,14 @@ app.post('/register', async (req, res) => {
   }
 });
 
-
 // Connexion
 app.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+  let { email, password } = req.body;
+
+  // Nettoyage des entrées
+  email = email.trim();
+  password = password.trim();
+
   console.log("🟡 Tentative de connexion :", email, password);
 
   try {
@@ -116,7 +126,6 @@ app.post('/login', async (req, res) => {
     res.status(500).send('Erreur serveur');
   }
 });
-
 
 // Infos utilisateur connecté
 app.get('/me', async (req, res) => {

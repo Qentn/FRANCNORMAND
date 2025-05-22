@@ -40,29 +40,46 @@
       input.type = input.type === "password" ? "text" : "password";
     }
 
+    function isValidEmail(email) {
+      const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return pattern.test(email);
+    }
+
+    function isValidWallet(wallet) {
+      return wallet.trim().length >= 10;
+    }
+
     document.getElementById('register-form').addEventListener('submit', async function (e) {
       e.preventDefault();
 
       const form = e.target;
-      const pwd = form.password.value;
-      const confirm = form.confirmPassword.value;
+      const username = form.username.value.trim();
+      const email = form.email.value.trim();
+      const wallet = form.wallet.value.trim();
+      const pwd = form.password.value.trim();
+      const confirm = form.confirmPassword.value.trim();
+
       const errorMsg = document.getElementById('error-msg');
       const serverError = document.getElementById('server-error');
-      serverError.textContent = "";
       errorMsg.style.display = "none";
+      serverError.textContent = "";
+
+      if (!isValidEmail(email)) {
+        serverError.textContent = "❌ Adresse email invalide.";
+        return;
+      }
+
+      if (!isValidWallet(wallet)) {
+        serverError.textContent = "❌ Adresse de portefeuille invalide.";
+        return;
+      }
 
       if (pwd !== confirm) {
         errorMsg.style.display = 'block';
         return;
       }
 
-      const data = {
-        username: form.username.value,
-        email: form.email.value,
-        wallet: form.wallet.value,
-        password: pwd,
-        confirmPassword: confirm
-      };
+      const data = { username, email, wallet, password: pwd };
 
       try {
         const res = await fetch('/register', {
