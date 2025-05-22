@@ -16,6 +16,7 @@
     "express": "^5.1.0",
     "express-session": "^1.18.1",
     "mongoose": "^8.15.0",
+    "node-mailjet": "^6.0.8",
     "nodemailer": "^7.0.3"
   }
 }
