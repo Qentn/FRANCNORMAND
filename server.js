@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const path = require('path');
 const session = require('express-session');
+const MongoStore = require('connect-mongo'); // ✅ pour les sessions Mongo
 
 const app = express();
 
@@ -18,6 +19,9 @@ app.use(session({
   secret: 'secretFrancNormand',
   resave: false,
   saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI
+  }),
   cookie: { secure: false } // mettre true si HTTPS (en prod)
 }));
 
@@ -33,12 +37,9 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, 'public')));
 
 // === CONNEXION À MONGODB ===
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('✅ Connecté à MongoDB'))
-.catch(err => console.error('❌ Erreur MongoDB :', err));
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('✅ Connecté à MongoDB'))
+  .catch(err => console.error('❌ Erreur MongoDB :', err));
 
 // === MODÈLE UTILISATEUR ===
 const User = require('./models/user');
@@ -61,7 +62,7 @@ app.post('/register', async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await new User({ username, email, password: hashedPassword, wallet }).save();
-    req.session.user = newUser._id; // ✅ Corrigé ici
+    req.session.user = newUser._id;
     res.redirect('/dashboard.html');
   } catch (err) {
     console.error(err);
