@@ -59,16 +59,32 @@ app.get('/login', (req, res) => {
 // Inscription
 app.post('/register', async (req, res) => {
   const { username, email, password, wallet } = req.body;
+
   try {
+    // Vérifie si l'email existe déjà
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
+      return res.status(400).send("Cet email est déjà utilisé.");
+    }
+
+    // Vérifie si le pseudo existe déjà
+    const existingUsername = await User.findOne({ username });
+    if (existingUsername) {
+      return res.status(400).send("Ce nom d'utilisateur est déjà pris.");
+    }
+
+    // Création du nouvel utilisateur
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await new User({ username, email, password: hashedPassword, wallet }).save();
     req.session.user = newUser._id;
     res.redirect('/dashboard.html');
+
   } catch (err) {
     console.error(err);
     res.status(500).send("Erreur lors de l'inscription.");
   }
 });
+
 
 // Connexion
 app.post('/login', async (req, res) => {
