@@ -45,6 +45,23 @@
       return pattern.test(email);
     }
 
+    function isTrustedDomain(email) {
+      const acceptedDomains = [
+        "gmail.com", "hotmail.com", "hotmail.fr", "yahoo.fr", "yahoo.com",
+        "orange.fr", "live.fr", "free.fr", "laposte.net", "icloud.com",
+        "outlook.com", "outlook.fr", "sfr.fr", "wanadoo.fr", "bbox.fr",
+        "protonmail.com", "protonmail.fr", "gmx.fr", "neuf.fr", "numericable.fr",
+        "me.com", "msn.com", "voila.fr", "club-internet.fr", "noos.fr",
+        "tiscali.fr", "t-online.de", "skynet.be", "bluewin.ch", "aliceadsl.fr",
+        "tele2.fr", "caramail.com", "dbmail.com", "live.com", "inbox.com",
+        "email.com", "mac.com", "mail.com", "libertysurf.fr", "cegetel.net",
+        "epita.fr", "etu.utc.fr", "etu.univ-lemans.fr", "etu.univ-nantes.fr",
+        "etu.univ-rouen.fr", "etu.univ-lille.fr", "etu.univ-paris1.fr", "etu.unistra.fr"
+      ];
+      const domain = email.split("@")[1]?.toLowerCase();
+      return acceptedDomains.includes(domain);
+    }
+
     function isValidWallet(wallet) {
       return wallet.trim().length >= 10;
     }
@@ -66,6 +83,11 @@
 
       if (!isValidEmail(email)) {
         serverError.textContent = "❌ Adresse email invalide.";
+        return;
+      }
+
+      if (!isTrustedDomain(email)) {
+        serverError.textContent = "❌ Ce domaine email n'est pas autorisé. Utilisez un service reconnu (gmail, orange, etc.).";
         return;
       }
 

@@ -7,7 +7,9 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const path = require('path');
 const session = require('express-session');
-const MongoStore = require('connect-mongo'); // ✅ pour les sessions Mongo
+const MongoStore = require('connect-mongo');
+const crypto = require('crypto');
+const sendVerificationEmail = require('./utils/sendEmail');
 
 const app = express();
 
@@ -59,50 +61,64 @@ app.get('/login', (req, res) => {
 // Inscription
 app.post('/register', async (req, res) => {
   let { username, email, password, wallet } = req.body;
-
-  // Nettoyage des entrées
   username = username.trim();
   email = email.trim();
   wallet = wallet.trim();
   password = password.trim();
 
-  // 🔐 VALIDATION AVANT TOUT
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    return res.status(400).send("❌ Adresse email invalide.");
-  }
-
-  if (!wallet || wallet.length < 10) {
-    return res.status(400).send("❌ Adresse de portefeuille invalide.");
-  }
+  if (!emailRegex.test(email)) return res.status(400).send("❌ Adresse email invalide.");
+  if (!wallet || wallet.length < 10) return res.status(400).send("❌ Adresse de portefeuille invalide.");
 
   try {
     const existingEmail = await User.findOne({ email });
-    if (existingEmail) {
-      return res.status(400).send("Cet email est déjà utilisé.");
-    }
+    if (existingEmail) return res.status(400).send("Cet email est déjà utilisé.");
 
     const existingUsername = await User.findOne({ username });
-    if (existingUsername) {
-      return res.status(400).send("Ce nom d'utilisateur est déjà pris.");
-    }
+    if (existingUsername) return res.status(400).send("Ce nom d'utilisateur est déjà pris.");
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await new User({ username, email, password: hashedPassword, wallet }).save();
-    req.session.user = newUser._id;
-    res.redirect('/dashboard.html');
+    const token = crypto.randomBytes(32).toString('hex');
 
+    const newUser = await new User({
+      username,
+      email,
+      password,
+      wallet,
+      verificationToken: token,
+      isVerified: false
+    }).save();
+
+    await sendVerificationEmail(email, token);
+    res.send("📩 Un email de confirmation a été envoyé. Clique sur le lien pour activer ton compte.");
   } catch (err) {
     console.error(err);
     res.status(500).send("Erreur lors de l'inscription.");
   }
 });
 
+// Vérification du compte par email
+app.get('/verify', async (req, res) => {
+  const { token } = req.query;
+  if (!token) return res.status(400).send("Lien invalide.");
+
+  try {
+    const user = await User.findOne({ verificationToken: token });
+    if (!user) return res.status(400).send("Lien expiré ou déjà utilisé.");
+
+    user.isVerified = true;
+    user.verificationToken = undefined;
+    await user.save();
+
+    res.sendFile(path.join(__dirname, 'public', 'verify.html'));
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Erreur de validation.");
+  }
+});
+
 // Connexion
 app.post('/login', async (req, res) => {
   let { email, password } = req.body;
-
-  // Nettoyage des entrées
   email = email.trim();
   password = password.trim();
 
@@ -113,6 +129,7 @@ app.post('/login', async (req, res) => {
     console.log("👤 Utilisateur trouvé :", user);
 
     if (!user) return res.status(400).send('Utilisateur non trouvé');
+    if (!user.isVerified) return res.status(403).send('Compte non vérifié. Vérifie ta boîte mail.');
 
     const isMatch = await bcrypt.compare(password, user.password);
     console.log("🔐 Résultat comparaison bcrypt :", isMatch);

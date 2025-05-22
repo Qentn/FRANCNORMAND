@@ -5,13 +5,13 @@ const userSchema = new mongoose.Schema({
   username: { type: String, required: true },
   email:    { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  wallet:   { type: String } // pas obligatoire au cas où pas de MetaMask
+  wallet:   { type: String },
+  isVerified: { type: Boolean, default: false },
+  verificationToken: { type: String }
 });
 
-// Middleware avant sauvegarde : hash du mot de passe s'il a été modifié
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
-
   try {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
