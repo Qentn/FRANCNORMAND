@@ -1,4 +1,6 @@
-const mailjet = require('node-mailjet').connect(
+const Mailjet = require('node-mailjet');
+
+const mailjet = new Mailjet.apiConnect(
   process.env.MJ_API_KEY,
   process.env.MJ_API_SECRET
 );
@@ -21,9 +23,9 @@ async function sendVerificationEmail(to, token) {
         Subject: "Confirme ton email – FrancNormand",
         HTMLPart: `
           <h2>Bienvenue sur FrancNormand !</h2>
-          <p>Clique ci-dessous pour valider ton compte :</p>
+          <p>Clique sur le bouton ci-dessous pour valider ton compte :</p>
           <a href="${verificationUrl}" style="padding: 10px 20px; background: #c8102e; color: white; text-decoration: none; border-radius: 4px;">Valider mon compte</a>
-          <p>Ou copie ce lien : <code>${verificationUrl}</code></p>
+          <p>Ou copie-colle ce lien dans ton navigateur :<br><code>${verificationUrl}</code></p>
         `,
       },
     ],
