@@ -60,8 +60,8 @@ app.post('/register', async (req, res) => {
   const { username, email, password, wallet } = req.body;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    await new User({ username, email, password: hashedPassword, wallet }).save();
-    req.session.user = email;
+    const newUser = await new User({ username, email, password: hashedPassword, wallet }).save();
+    req.session.user = newUser._id; // ✅ Corrigé ici
     res.redirect('/dashboard.html');
   } catch (err) {
     console.error(err);
