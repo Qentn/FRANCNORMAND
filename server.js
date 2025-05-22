@@ -1,25 +1,27 @@
+// === CHARGER LES VARIABLES D'ENVIRONNEMENT EN PREMIER ===
+require('dotenv').config();
+
 // === DEPENDANCES PRINCIPALES ===
 const express = require('express');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const path = require('path');
 const session = require('express-session');
-require('dotenv').config(); // ← charge les variables du fichier .env
 
 const app = express();
 
-// === MIDDLEWARE ===
+// === MIDDLEWARES ===
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
-// 🔐 Middleware session
 app.use(session({
   secret: 'secretFrancNormand',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false } // true si HTTPS (ex. Vercel avec certificat SSL)
+  cookie: { secure: false } // mettre true si HTTPS (en prod)
 }));
 
-// 🔒 Protéger la page dashboard
+// 🔒 Protection de la page dashboard
 app.use((req, res, next) => {
   if (req.path === '/dashboard.html' && !req.session.user) {
     return res.redirect('/auth.html');
@@ -27,16 +29,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// 🌐 Servir les fichiers statiques (HTML/CSS/JS/images)
+// 🌐 Servir les fichiers statiques
 app.use(express.static(path.join(__dirname, 'public')));
 
-// === ROUTE ACCUEIL ===
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
 // === CONNEXION À MONGODB ===
-mongoose.connect(process.env.MONGO_URI, {
+mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
@@ -44,11 +41,21 @@ mongoose.connect(process.env.MONGO_URI, {
 .catch(err => console.error('❌ Erreur MongoDB :', err));
 
 // === MODÈLE UTILISATEUR ===
-const User = require('./models/user'); // 👈 nom corrigé ici
+const User = require('./models/user');
 
 // === ROUTES ===
 
-// ▶️ Inscription
+// Page d'accueil
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Page de connexion (GET)
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'auth.html'));
+});
+
+// Inscription
 app.post('/register', async (req, res) => {
   const { username, email, password, wallet } = req.body;
   try {
@@ -62,7 +69,7 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// ▶️ Connexion
+// Connexion
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -79,11 +86,13 @@ app.post('/login', async (req, res) => {
     res.status(500).send('Erreur serveur');
   }
 });
+
+// Infos utilisateur connecté
 app.get('/me', async (req, res) => {
   if (!req.session.user) return res.status(401).json({ error: 'Non connecté' });
 
   try {
-    const user = await User.findById(req.session.user).select('-password'); // retire le mot de passe
+    const user = await User.findById(req.session.user).select('-password');
     if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
 
     res.json(user);
@@ -93,13 +102,13 @@ app.get('/me', async (req, res) => {
   }
 });
 
-// 🔓 Déconnexion
+// Déconnexion
 app.get('/logout', (req, res) => {
   req.session.destroy(() => {
     res.redirect('/auth.html');
   });
 });
 
-// === LANCEMENT SERVEUR ===
+// LANCEMENT DU SERVEUR
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Serveur lancé sur http://localhost:${PORT}`));
