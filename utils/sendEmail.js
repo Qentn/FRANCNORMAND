@@ -2,7 +2,7 @@ const mailjet = require('node-mailjet')
   .connect(process.env.MJ_API_KEY, process.env.MJ_API_SECRET);
 
 async function sendVerificationEmail(to, token) {
-  const verificationUrl = `http://localhost:3000/verify?token=${token}`;
+  const verificationUrl = `https://francnormand.onrender.com/verify?token=${token}`;
 
   try {
     await mailjet.post('send', { version: 'v3.1' }).request({
