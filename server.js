@@ -89,7 +89,7 @@ app.post('/register', async (req, res) => {
     }).save();
 
     await sendVerificationEmail(email, token);
-    res.send("📩 Un email de confirmation a été envoyé. Clique sur le lien pour activer ton compte.");
+    res.sendFile(path.join(__dirname, 'public', 'register-success.html'));
   } catch (err) {
     console.error(err);
     res.status(500).send("Erreur lors de l'inscription.");
