@@ -11,12 +11,24 @@
     <h2>Connexion</h2>
     <form action="/login" method="POST">
       <input type="email" name="email" placeholder="Email" required />
-      <input type="password" name="password" placeholder="Mot de passe" required />
+      
+      <div style="position: relative;">
+        <input type="password" id="login-password" name="password" placeholder="Mot de passe" required />
+        <button type="button" onclick="togglePassword('login-password')" style="position: absolute; right: 0;">👁</button>
+      </div>
+      
       <button type="submit">Se connecter</button>
     </form>
     <div class="toggle">
       Pas encore de compte ? <a href="/register.html">S’inscrire</a>
     </div>
   </div>
+
+  <script>
+    function togglePassword(id) {
+      const input = document.getElementById(id);
+      input.type = input.type === "password" ? "text" : "password";
+    }
+  </script>
 </body>
 </html>
