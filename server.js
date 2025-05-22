@@ -60,20 +60,27 @@ app.get('/login', (req, res) => {
 app.post('/register', async (req, res) => {
   const { username, email, password, wallet } = req.body;
 
+  // 🔐 VALIDATION AVANT TOUT
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).send("❌ Adresse email invalide.");
+  }
+
+  if (!wallet || wallet.length < 10) {
+    return res.status(400).send("❌ Adresse de portefeuille invalide.");
+  }
+
   try {
-    // Vérifie si l'email existe déjà
     const existingEmail = await User.findOne({ email });
     if (existingEmail) {
       return res.status(400).send("Cet email est déjà utilisé.");
     }
 
-    // Vérifie si le pseudo existe déjà
     const existingUsername = await User.findOne({ username });
     if (existingUsername) {
       return res.status(400).send("Ce nom d'utilisateur est déjà pris.");
     }
 
-    // Création du nouvel utilisateur
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await new User({ username, email, password: hashedPassword, wallet }).save();
     req.session.user = newUser._id;
@@ -89,20 +96,27 @@ app.post('/register', async (req, res) => {
 // Connexion
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
+  console.log("🟡 Tentative de connexion :", email, password);
+
   try {
     const user = await User.findOne({ email });
+    console.log("👤 Utilisateur trouvé :", user);
+
     if (!user) return res.status(400).send('Utilisateur non trouvé');
 
     const isMatch = await bcrypt.compare(password, user.password);
+    console.log("🔐 Résultat comparaison bcrypt :", isMatch);
+
     if (!isMatch) return res.status(400).send('Mot de passe incorrect');
 
     req.session.user = user._id;
     res.redirect('/dashboard.html');
   } catch (err) {
-    console.error(err);
+    console.error("❌ Erreur serveur lors de la connexion :", err);
     res.status(500).send('Erreur serveur');
   }
 });
+
 
 // Infos utilisateur connecté
 app.get('/me', async (req, res) => {
