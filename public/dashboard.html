@@ -172,6 +172,7 @@
         <div class="wallet-info">
           <span id="walletAddress">0xabcdef1234567890abcdef1234567890abcdef12</span>
           <button onclick="copyWallet()">Copier</button>
+          <button id="linkWalletBtn">Lier mon portefeuille</button>
           <a href="#" style="color: var(--primary-color); font-size: 0.8rem;">Voir le QR code correspondant</a>
         </div>
       </header>
@@ -224,7 +225,7 @@
       fetch('/api/buy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: 50 }) // par ex. 50 NORM
+        body: JSON.stringify({ amount: 50 })
       })
       .then(response => response.json())
       .then(data => {
@@ -249,6 +250,44 @@
         })
         .catch(error => console.error('Erreur lors de l\'envoi:', error));
       }
+    });
+
+    document.getElementById('linkWalletBtn').addEventListener('click', async () => {
+      if (typeof window.ethereum !== 'undefined') {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          const walletAddress = accounts[0];
+          console.log('✅ Adresse récupérée :', walletAddress);
+
+          const response = await fetch('/link-wallet', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ wallet: walletAddress })
+          });
+
+          if (response.ok) {
+            alert('✅ Wallet lié avec succès !');
+          } else {
+            alert('❌ Erreur lors de la liaison du wallet.');
+          }
+        } catch (error) {
+          console.error(error);
+          alert('❌ Erreur lors de la récupération du wallet.');
+        }
+      } else {
+        alert('❌ MetaMask non détecté.');
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      fetch('/me')
+        .then(response => response.json())
+        .then(data => {
+          if (data.wallet) {
+            document.getElementById('walletAddress').textContent = data.wallet;
+          }
+        })
+        .catch(err => console.error('Erreur lors du chargement des infos:', err));
     });
   </script>
 </body>
