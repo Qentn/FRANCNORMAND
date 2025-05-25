@@ -58,17 +58,15 @@ app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'auth.html'));
 });
 
-// Inscription
+// Inscription (wallet retiré)
 app.post('/register', async (req, res) => {
-  let { username, email, password, wallet } = req.body;
+  let { username, email, password } = req.body;
   username = username.trim();
   email = email.trim();
-  wallet = wallet.trim();
   password = password.trim();
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) return res.status(400).send("❌ Adresse email invalide.");
-  if (!wallet || wallet.length < 10) return res.status(400).send("❌ Adresse de portefeuille invalide.");
 
   try {
     const existingEmail = await User.findOne({ email });
@@ -83,7 +81,6 @@ app.post('/register', async (req, res) => {
       username,
       email,
       password,
-      wallet,
       verificationToken: token,
       isVerified: false
     }).save();
@@ -156,6 +153,24 @@ app.get('/me', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// 🔗 Nouvelle route : lier un wallet à l’utilisateur connecté
+app.post('/link-wallet', async (req, res) => {
+  try {
+    const userId = req.session.user;
+    const { wallet } = req.body;
+
+    if (!userId || !wallet) {
+      return res.status(400).send("Requête incomplète");
+    }
+
+    await User.findByIdAndUpdate(userId, { wallet });
+    res.status(200).send("Wallet lié avec succès !");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Erreur serveur");
   }
 });
 

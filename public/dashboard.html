@@ -25,6 +25,14 @@
 
     <!-- Contenu principal -->
     <main class="dashboard-main">
+      <!-- Bandeau d’explication MetaMask -->
+      <div id="wallet-info" class="wallet-info">
+        <h2>🔗 Connecte ton portefeuille MetaMask</h2>
+        <p>Pour accéder à toutes les fonctionnalités, connecte ton wallet.</p>
+        <p>👉 Clique sur le bouton ci-dessous.</p>
+        <button id="connect-wallet-btn" class="btn">Connecter mon portefeuille</button>
+      </div>
+
       <header class="dashboard-header">
         <h1 id="welcomeTitle">Bienvenue</h1>
         <p>Portefeuille connecté : <span id="walletAddress">0x...</span></p>
@@ -62,17 +70,58 @@
         const user = await res.json();
 
         document.getElementById("welcomeTitle").textContent = `Bienvenue ${user.username}`;
-        document.getElementById("walletAddress").textContent = user.wallet || "Non connecté";
 
-        // Si plus tard tu veux gérer le solde dynamiquement :
-        // document.getElementById("balance").textContent = `${user.balance} NORM`;
+        // Si l'utilisateur a déjà un wallet lié, l'afficher directement
+        if (user.wallet) {
+          document.getElementById("wallet-info").style.display = "none";
+          document.getElementById("walletAddress").textContent = user.wallet;
+          localStorage.setItem("userWallet", user.wallet);
+        } else {
+          document.getElementById("wallet-info").style.display = "block";
+        }
       } catch (err) {
         console.error(err);
-        window.location.href = "/auth.html"; // redirige si non connecté
+        window.location.href = "/auth.html";
       }
     }
 
-    loadUserData();
+    // Connexion au wallet MetaMask
+    async function connectWallet() {
+      if (typeof window.ethereum !== "undefined") {
+        try {
+          const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+          const userAddress = accounts[0];
+          console.log("Wallet connecté:", userAddress);
+
+          // Sauvegarder l’adresse localement
+          localStorage.setItem("userWallet", userAddress);
+
+          // Envoyer l'adresse au serveur pour lier à l'utilisateur
+          const res = await fetch('/link-wallet', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ wallet: userAddress })
+          });
+
+          if (res.ok) {
+            console.log("Wallet lié côté serveur !");
+            document.getElementById("wallet-info").style.display = "none";
+            document.getElementById("walletAddress").textContent = userAddress;
+          } else {
+            alert("Erreur lors de la sauvegarde du wallet sur le serveur.");
+          }
+        } catch (error) {
+          console.error(error);
+          alert("Erreur lors de la connexion à MetaMask.");
+        }
+      } else {
+        alert("MetaMask n’est pas installé. Télécharge-le pour continuer !");
+      }
+    }
+
+    document.getElementById("connect-wallet-btn").addEventListener("click", connectWallet);
+
+    window.addEventListener("DOMContentLoaded", loadUserData);
   </script>
 </body>
 </html>

@@ -12,7 +12,6 @@
     <form id="register-form">
       <input type="text" name="username" placeholder="Nom d'utilisateur" required />
       <input type="email" name="email" placeholder="Email" required />
-      <input type="text" name="wallet" placeholder="Adresse du portefeuille" required />
 
       <div style="position: relative;">
         <input type="password" id="password" name="password" placeholder="Mot de passe" required />
@@ -62,17 +61,12 @@
       return acceptedDomains.includes(domain);
     }
 
-    function isValidWallet(wallet) {
-      return wallet.trim().length >= 10;
-    }
-
     document.getElementById('register-form').addEventListener('submit', async function (e) {
       e.preventDefault();
 
       const form = e.target;
       const username = form.username.value.trim();
       const email = form.email.value.trim();
-      const wallet = form.wallet.value.trim();
       const pwd = form.password.value.trim();
       const confirm = form.confirmPassword.value.trim();
 
@@ -91,17 +85,12 @@
         return;
       }
 
-      if (!isValidWallet(wallet)) {
-        serverError.textContent = "❌ Adresse de portefeuille invalide.";
-        return;
-      }
-
       if (pwd !== confirm) {
         errorMsg.style.display = 'block';
         return;
       }
 
-      const data = { username, email, wallet, password: pwd };
+      const data = { username, email, password: pwd };
 
       try {
         const res = await fetch('/register', {
