@@ -5,7 +5,6 @@
   --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Applique un comportement prévisible à tous les éléments */
 * {
   box-sizing: border-box;
 }
@@ -43,7 +42,8 @@ body, html {
   position: relative;
   padding: 0 10vw;
   text-align: center;
-  background-color: #f9f9f9;
+  background-size: cover;
+  background-position: center;
   transition: transform 0.8s ease;
   user-select: none;
 }
@@ -52,7 +52,7 @@ body, html {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(240, 240, 240, 0.7);
+  background: transparent;  /* Pas d'overlay pour garder les images nettes */
   z-index: 1;
 }
 
