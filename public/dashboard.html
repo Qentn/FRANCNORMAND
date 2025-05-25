@@ -9,7 +9,7 @@
     :root {
       --primary-color: #c8102e;
       --background-color: #ffffff;
-      --secondary-background: #f0f0f0;
+      --secondary-background: #d9d9d9;
       --text-color: #1e1e1e;
     }
 
@@ -179,13 +179,13 @@
       <div class="grid">
         <div class="card">
           <h2>Solde actuel</h2>
-          <p class="solde">152.34 NORM</p>
+          <p class="solde">1520000.34 NORM</p>
         </div>
 
         <div class="card">
           <h2>Actions rapides</h2>
-          <button class="btn">Acheter du NORM</button><br>
-          <button class="btn">Envoyer des NORM</button>
+          <button id="buyNorm" class="btn">Acheter du NORM</button><br>
+          <button id="sendNorm" class="btn">Envoyer des NORM</button>
         </div>
 
         <div class="card">
@@ -219,6 +219,37 @@
       alert("Déconnecté !");
       // Redirection ou autre logique de déconnexion ici
     }
+
+    document.getElementById('buyNorm').addEventListener('click', () => {
+      fetch('/api/buy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: 50 }) // par ex. 50 NORM
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert(data.message || 'Achat effectué !');
+      })
+      .catch(error => console.error('Erreur lors de l\'achat:', error));
+    });
+
+    document.getElementById('sendNorm').addEventListener('click', () => {
+      const recipient = prompt('Entrez l\'adresse du destinataire :');
+      const amount = prompt('Entrez le montant à envoyer :');
+
+      if (recipient && amount) {
+        fetch('/api/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ recipient, amount })
+        })
+        .then(response => response.json())
+        .then(data => {
+          alert(data.message || 'Envoi effectué !');
+        })
+        .catch(error => console.error('Erreur lors de l\'envoi:', error));
+      }
+    });
   </script>
 </body>
 </html>

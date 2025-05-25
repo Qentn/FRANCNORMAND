@@ -58,7 +58,7 @@ app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'auth.html'));
 });
 
-// Inscription (wallet retiré)
+// Inscription
 app.post('/register', async (req, res) => {
   let { username, email, password } = req.body;
   username = username.trim();
@@ -93,7 +93,7 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// Vérification du compte par email
+// Vérification du compte
 app.get('/verify', async (req, res) => {
   const { token } = req.query;
   if (!token) return res.status(400).send("Lien invalide.");
@@ -156,7 +156,7 @@ app.get('/me', async (req, res) => {
   }
 });
 
-// 🔗 Nouvelle route : lier un wallet à l’utilisateur connecté
+// 🔗 Lier un wallet
 app.post('/link-wallet', async (req, res) => {
   try {
     const userId = req.session.user;
@@ -172,6 +172,20 @@ app.post('/link-wallet', async (req, res) => {
     console.error(err);
     res.status(500).send("Erreur serveur");
   }
+});
+
+// 💸 API ACHAT DE NORM
+app.post('/api/buy', (req, res) => {
+  console.log("Achat de NORM demandé:", req.body);
+  // Logique d'achat fictive ou réelle ici...
+  res.json({ message: 'Achat de NORM validé !' });
+});
+
+// 💸 API ENVOI DE NORM
+app.post('/api/send', (req, res) => {
+  console.log("Envoi de NORM demandé:", req.body);
+  // Logique d'envoi fictive ou réelle ici...
+  res.json({ message: 'Envoi de NORM effectué !' });
 });
 
 // Déconnexion

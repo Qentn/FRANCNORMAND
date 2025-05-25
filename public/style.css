@@ -1,40 +1,254 @@
-/* Variables globales */
+/* === Styles importés depuis l'ancien index.html === */
+/* === Variables globales de couleurs et polices === */
 :root {
-  --red: #c8102e;           /* Rouge FrancNormand */
+  --red: #c8102e;           /* Rouge Normandie */
   --yellow: #ffd100;        /* Jaune Normandie */
   --bg-dark: #121212;       /* Fond sombre principal */
-  --bg-card: #1a1a1a;       /* Fond des cartes */
   --text-light: #f5f5f5;    /* Texte clair */
-  --text-muted: #aaa;       /* Texte secondaire */
-  --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Police utilisée partout */
 }
 
-/* Reset */
+/* Applique un comportement prévisible à tous les éléments */
 * {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
+/* Corps de la page et html global : fond noir, texte clair, police, sans scroll horizontal */
 body, html {
+  margin: 0;
+  padding: 0;
   height: 100%;
   font-family: var(--font-main);
   background-color: var(--bg-dark);
   color: var(--text-light);
+  overflow-x: hidden;
 }
 
-/* Dashboard layout */
+/* === Carrousel principal (slides plein écran horizontal) === */
+.slider {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  scroll-snap-type: x mandatory;   /* Effet snap slide par slide */
+  scroll-behavior: smooth;         /* Défilement fluide */
+  -webkit-overflow-scrolling: touch; /* Défilement fluide sur mobile */
+}
+
+/* === Chaque slide === */
+.slide {
+  flex: none;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  scroll-snap-align: start;       /* Chaque slide s’aligne au début */
+  position: relative;
+  padding: 0 10vw;
+  text-align: center;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.8s ease;
+  user-select: none;
+}
+
+/* Overlay sombre sur chaque slide pour faire ressortir le texte */
+.slide::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 20, 20, 0.7);  /* Noir semi-transparent */
+  z-index: 1;
+}
+
+/* Contenu positionné au-dessus de l’overlay */
+.slide-content {
+  position: relative;
+  z-index: 2;
+  max-width: 700px;
+}
+
+/* === Titres principaux dans les slides === */
+h1 {
+  font-size: clamp(2rem, 5vw, 4rem); /* Taille adaptable */
+  font-weight: 900;
+  margin-bottom: 0.3em;
+  letter-spacing: 0.05em;
+  color: var(--yellow);
+  text-transform: uppercase;
+  text-shadow: 0 0 10px var(--yellow); /* Effet lumineux */
+}
+
+/* === Paragraphes dans les slides === */
+p {
+  font-size: clamp(1rem, 1.5vw, 1.5rem);
+  line-height: 1.6;
+  color: #ddd;
+  margin-bottom: 2em;
+}
+
+/* === Boutons stylés transparents avec effet lumineux au survol === */
+.btn {
+  font-weight: 700;
+  font-size: 1.2rem;
+  padding: 0.7em 2.5em;
+  border: 2px solid var(--yellow);
+  background: transparent;
+  color: var(--yellow);
+  text-transform: uppercase;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease;
+  letter-spacing: 0.1em;
+  user-select: none;
+}
+
+/* Survol des boutons : fond jaune, texte sombre, ombre lumineuse */
+.btn:hover {
+  background: var(--yellow);
+  color: var(--bg-dark);
+  box-shadow: 0 0 20px var(--yellow);
+}
+
+/* === Petits ronds de navigation entre les slides === */
+.pagination {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 15px;
+  z-index: 10;
+}
+
+/* Style de chaque rond */
+.pagination button {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 209, 0, 0.3); /* Jaune semi-transparent */
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+/* Rond actif (slide en cours) */
+.pagination button.active {
+  background: var(--yellow);
+  box-shadow: 0 0 8px var(--yellow);
+}
+
+/* === Adaptation mobile (moins de 600px de large) === */
+@media (max-width: 600px) {
+  h1 {
+    font-size: 2.5rem;
+  }
+
+  p {
+    font-size: 1rem;
+  }
+
+  .btn {
+    padding: 0.6em 2em;
+    font-size: 1rem;
+  }
+}
+/* === Formulaires connexion / inscription === */
+
+.auth-container {
+  background-color: #242424;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 0 8px rgba(255, 209, 0, 0.2);
+  width: 100%;
+  max-width: 420px;
+  margin: auto;
+  margin-top: 10vh;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.auth-container h2 {
+  text-align: center;
+  color: var(--yellow);
+  font-size: 1.8rem;
+  margin-bottom: 25px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-shadow: none;
+}
+
+.auth-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.auth-container input {
+  padding: 12px 14px;
+  border: 1px solid #444;
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: #1a1a1a;
+  color: var(--text-light);
+  transition: all 0.2s ease;
+}
+
+.auth-container input:focus {
+  outline: none;
+  border-color: var(--yellow);
+  background-color: #202020;
+}
+
+.auth-container button {
+  padding: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  border: 2px solid var(--yellow);
+  background-color: transparent;
+  color: var(--yellow);
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.auth-container button:hover {
+  background-color: var(--yellow);
+  color: var(--bg-dark);
+  box-shadow: 0 0 10px rgba(255, 209, 0, 0.4);
+}
+
+.auth-container .toggle {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+.auth-container .toggle a {
+  color: var(--yellow);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.auth-container .toggle a:hover {
+  text-decoration: underline;
+}
+/* === Layout principal avec sidebar === */
 .dashboard-layout {
   display: flex;
   min-height: 100vh;
 }
 
-/* Sidebar */
+/* === Sidebar === */
 .dashboard-sidebar {
   width: 220px;
   background-color: #181818;
   padding: 30px 20px;
   border-right: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--text-light);
 }
 
 .dashboard-sidebar h2 {
@@ -45,6 +259,7 @@ body, html {
 
 .dashboard-sidebar nav ul {
   list-style: none;
+  padding: 0;
 }
 
 .dashboard-sidebar nav li {
@@ -59,83 +274,16 @@ body, html {
 }
 
 .dashboard-sidebar nav a:hover {
-  color: var(--red);
+  color: var(--yellow);
 }
 
-/* Main content */
+/* === Contenu principal du dashboard === */
 .dashboard-main {
   flex: 1;
-  padding: 40px;
+  padding: 40px 30px;
 }
 
-.dashboard-main header h1 {
-  font-size: 2rem;
-  margin-bottom: 5px;
-  color: var(--yellow);
-}
-
-.dashboard-main header p {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  margin-bottom: 30px;
-}
-
-/* Grid layout for cards */
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-}
-
-/* Cards */
-.dashboard-card {
-  background-color: var(--bg-card);
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 8px rgba(255, 209, 0, 0.15);
-}
-
-.dashboard-card h2 {
-  color: var(--yellow);
-  margin-bottom: 15px;
-}
-
-.dashboard-card p {
-  font-size: 1.1rem;
-}
-
-.activity-log {
-  list-style: none;
-  font-size: 0.9rem;
-}
-
-.activity-log li {
-  margin-bottom: 10px;
-}
-
-/* Buttons */
-.btn {
-  display: inline-block;
-  padding: 10px 20px;
-  margin: 5px 0;
-  border: 2px solid var(--yellow);
-  background: transparent;
-  color: var(--yellow);
-  border-radius: 30px;
-  cursor: pointer;
-  font-weight: 600;
-  text-transform: uppercase;
-  transition: all 0.3s ease;
-}
-
-.btn:hover {
-  background-color: var(--red);
-  border-color: var(--red);
-  color: #fff;
-  box-shadow: 0 0 10px rgba(200, 16, 46, 0.4);
-}
-
-/* Responsive tweaks */
+/* === Responsive mobile === */
 @media (max-width: 768px) {
   .dashboard-layout {
     flex-direction: column;
