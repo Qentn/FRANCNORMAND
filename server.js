@@ -9,7 +9,7 @@ const path = require('path');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const crypto = require('crypto');
-const { ethers } = require('ethers');  // Pour la vérification de signature
+const ethers = require('ethers');  // Pour la vérification de signature
 const sendVerificationEmail = require('./utils/sendEmail');
 
 const app = express();
