@@ -57,14 +57,21 @@
       margin-bottom: 15px;
     }
 
-    .sidebar nav ul li a {
+    .sidebar nav ul li a,
+    .sidebar nav ul li button {
       color: var(--text-color);
       text-decoration: none;
       display: flex;
       align-items: center;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font: inherit;
+      padding: 0;
     }
 
-    .sidebar nav ul li a i {
+    .sidebar nav ul li a i,
+    .sidebar nav ul li button i {
       margin-right: 10px;
       color: var(--primary-color);
     }
@@ -170,10 +177,10 @@
       <h2>FrancNormand</h2>
       <nav>
         <ul>
-          <li><a href="#"><i class="fas fa-envelope"></i>Nous contacter</a></li>
-          <li><a href="#"><i class="fas fa-users"></i>Qui sommes-nous ?</a></li>
-          <li><a href="#"><i class="fas fa-gavel"></i>Mentions légales</a></li>
-          <li><a href="#" onclick="deconnexion()"><i class="fas fa-sign-out-alt"></i>Déconnexion</a></li>
+          <li><a href="/contact"><i class="fas fa-envelope"></i>Nous contacter</a></li>
+          <li><a href="/about"><i class="fas fa-users"></i>Qui sommes-nous ?</a></li>
+          <li><a href="/legal"><i class="fas fa-gavel"></i>Mentions légales</a></li>
+          <li><button onclick="deconnexion()"><i class="fas fa-sign-out-alt"></i>Déconnexion</button></li>
         </ul>
       </nav>
     </aside>
@@ -202,10 +209,8 @@
 
         <div class="card">
           <h2>Dernières activités</h2>
-          <ul class="activity-log">
-            <li>+25 NORM reçus - Bienvenue 🎉</li>
-            <li>-12.5 NORM envoyés à 0xabc...</li>
-            <li>+50 NORM achetés via carte</li>
+          <ul id="activityLog" class="activity-log">
+            <li>Chargement des transactions...</li>
           </ul>
         </div>
 
@@ -244,6 +249,7 @@
           const qrCodeElement = document.getElementById('walletQrCode');
           const qrPlaceholder = document.getElementById('qrPlaceholder');
           const soldeElement = document.getElementById('solde');
+          const activityLog = document.getElementById('activityLog');
 
           if (data.wallet) {
             walletAddressElement.textContent = data.wallet;
@@ -252,11 +258,24 @@
             const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(data.wallet)}&size=100x100`;
             qrCodeElement.src = qrCodeUrl;
             qrPlaceholder.textContent = "";
+
+            if (data.transactions && data.transactions.length > 0) {
+              activityLog.innerHTML = "";
+              data.transactions.forEach(tx => {
+                const sign = tx.type === 'receive' ? '+' : '-';
+                const addressShort = tx.address ? `${tx.address.slice(0, 5)}...` : '';
+                const line = `<li>${sign}${tx.amount} NORM - ${tx.type} ${addressShort}</li>`;
+                activityLog.innerHTML += line;
+              });
+            } else {
+              activityLog.innerHTML = "<li>Aucune transaction pour le moment</li>";
+            }
           } else {
             walletAddressElement.innerHTML = `<button id="linkWalletBtn" class="btn">Connecter votre portefeuille</button>`;
             soldeElement.textContent = "Connectez votre portefeuille";
             qrCodeElement.src = "";
             qrPlaceholder.textContent = "👉 Connectez votre portefeuille pour voir votre QR code !";
+            activityLog.innerHTML = "<li>Connectez votre portefeuille pour voir vos transactions</li>";
 
             document.getElementById('linkWalletBtn').addEventListener('click', async () => {
               if (typeof window.ethereum !== 'undefined') {
@@ -292,7 +311,10 @@
             });
           }
         })
-        .catch(err => console.error('Erreur lors du chargement des infos:', err));
+        .catch(err => {
+          console.error('Erreur lors du chargement des infos:', err);
+          alert('❌ Impossible de charger les informations du portefeuille. Réessayez plus tard.');
+        });
     });
   </script>
 </body>

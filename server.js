@@ -9,7 +9,7 @@ const path = require('path');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const crypto = require('crypto');
-const ethers = require('ethers');  // Pour la vérification de signature
+const ethers = require('ethers'); // Pour la vérification de signature
 const sendVerificationEmail = require('./utils/sendEmail');
 
 const app = express();
@@ -44,8 +44,9 @@ mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ Connecté à MongoDB'))
   .catch(err => console.error('❌ Erreur MongoDB :', err));
 
-// === MODÈLE UTILISATEUR ===
+// === MODÈLE UTILISATEUR ET TRANSACTION ===
 const User = require('./models/user');
+const Transaction = require('./models/transaction'); // 👈 Ajout du modèle Transaction
 
 // === ROUTES ===
 
@@ -136,7 +137,7 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// Infos utilisateur connecté
+// 🔗 Infos utilisateur connecté + dernières transactions
 app.get('/me', async (req, res) => {
   if (!req.session.user) return res.status(401).json({ error: 'Non connecté' });
 
@@ -144,19 +145,22 @@ app.get('/me', async (req, res) => {
     const user = await User.findById(req.session.user).select('-password');
     if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
 
-    // Supposons que tu as un champ `solde` dans le modèle User
-    const soldeNorm = user.solde || 0; // Ou récupéré ailleurs si nécessaire
+    const soldeNorm = user.solde || 0;
+
+    const transactions = await Transaction.find({ userId: user._id })
+      .sort({ date: -1 })
+      .limit(3);
 
     res.json({
       wallet: user.wallet,
-      solde: soldeNorm
+      solde: soldeNorm,
+      transactions
     });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
-
 
 // 🔗 Lier un wallet (avec vérification de signature)
 app.post('/link-wallet', async (req, res) => {
@@ -168,14 +172,12 @@ app.post('/link-wallet', async (req, res) => {
       return res.status(400).json({ error: "Requête incomplète" });
     }
 
-    // Vérifier la signature avec ethers.js
-     const recoveredAddress = ethers.verifyMessage(message, signature);
+    const recoveredAddress = ethers.verifyMessage(message, signature);
 
     if (recoveredAddress.toLowerCase() !== wallet.toLowerCase()) {
       return res.status(401).json({ error: "Signature invalide" });
     }
 
-    // Signature valide : lier le wallet à l'utilisateur
     await User.findByIdAndUpdate(userId, { wallet });
     res.status(200).json({ message: "Wallet lié avec succès et signature vérifiée !" });
   } catch (err) {
