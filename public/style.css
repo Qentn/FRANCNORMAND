@@ -1,301 +1,167 @@
-/* === Styles importés depuis l'ancien index.html === */
-/* === Variables globales de couleurs et polices === */
 :root {
-  --red: #c8102e;           /* Rouge Normandie */
-  --yellow: #ffd100;        /* Jaune Normandie */
-  --bg-dark: #121212;       /* Fond sombre principal */
-  --text-light: #f5f5f5;    /* Texte clair */
-  --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Police utilisée partout */
+  --primary-color: #c8102e;           /* Rouge Normandie */
+  --background-color: #ffffff;        /* Fond blanc lumineux */
+  --secondary-background: #d9d9d9;    /* Gris clair */
+  --text-color: #1e1e1e;              /* Texte sombre */
+  --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Applique un comportement prévisible à tous les éléments */
 * {
   box-sizing: border-box;
 }
 
-/* Corps de la page et html global : fond noir, texte clair, police, sans scroll horizontal */
 body, html {
   margin: 0;
   padding: 0;
   height: 100%;
   font-family: var(--font-main);
-  background-color: var(--bg-dark);
-  color: var(--text-light);
+  background-color: var(--background-color);
+  color: var(--text-color);
   overflow-x: hidden;
 }
 
-/* === Carrousel principal (slides plein écran horizontal) === */
-.slider {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  display: flex;
-  scroll-snap-type: x mandatory;   /* Effet snap slide par slide */
-  scroll-behavior: smooth;         /* Défilement fluide */
-  -webkit-overflow-scrolling: touch; /* Défilement fluide sur mobile */
-}
-
-/* === Chaque slide === */
-.slide {
-  flex: none;
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  scroll-snap-align: start;       /* Chaque slide s’aligne au début */
-  position: relative;
-  padding: 0 10vw;
-  text-align: center;
-  background-size: cover;
-  background-position: center;
-  transition: transform 0.8s ease;
-  user-select: none;
-}
-
-/* Overlay sombre sur chaque slide pour faire ressortir le texte */
-.slide::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(20, 20, 20, 0.7);  /* Noir semi-transparent */
-  z-index: 1;
-}
-
-/* Contenu positionné au-dessus de l’overlay */
-.slide-content {
-  position: relative;
-  z-index: 2;
-  max-width: 700px;
-}
-
-/* === Titres principaux dans les slides === */
-h1 {
-  font-size: clamp(2rem, 5vw, 4rem); /* Taille adaptable */
-  font-weight: 900;
-  margin-bottom: 0.3em;
-  letter-spacing: 0.05em;
-  color: var(--yellow);
-  text-transform: uppercase;
-  text-shadow: 0 0 10px var(--yellow); /* Effet lumineux */
-}
-
-/* === Paragraphes dans les slides === */
-p {
-  font-size: clamp(1rem, 1.5vw, 1.5rem);
-  line-height: 1.6;
-  color: #ddd;
-  margin-bottom: 2em;
-}
-
-/* === Boutons stylés transparents avec effet lumineux au survol === */
-.btn {
-  font-weight: 700;
-  font-size: 1.2rem;
-  padding: 0.7em 2.5em;
-  border: 2px solid var(--yellow);
-  background: transparent;
-  color: var(--yellow);
-  text-transform: uppercase;
-  border-radius: 30px;
-  cursor: pointer;
-  transition: background 0.3s ease, color 0.3s ease;
-  letter-spacing: 0.1em;
-  user-select: none;
-}
-
-/* Survol des boutons : fond jaune, texte sombre, ombre lumineuse */
-.btn:hover {
-  background: var(--yellow);
-  color: var(--bg-dark);
-  box-shadow: 0 0 20px var(--yellow);
-}
-
-/* === Petits ronds de navigation entre les slides === */
-.pagination {
-  position: fixed;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 15px;
-  z-index: 10;
-}
-
-/* Style de chaque rond */
-.pagination button {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255, 209, 0, 0.3); /* Jaune semi-transparent */
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-/* Rond actif (slide en cours) */
-.pagination button.active {
-  background: var(--yellow);
-  box-shadow: 0 0 8px var(--yellow);
-}
-
-/* === Adaptation mobile (moins de 600px de large) === */
-@media (max-width: 600px) {
-  h1 {
-    font-size: 2.5rem;
-  }
-
-  p {
-    font-size: 1rem;
-  }
-
-  .btn {
-    padding: 0.6em 2em;
-    font-size: 1rem;
-  }
-}
-/* === Formulaires connexion / inscription === */
-
-.auth-container {
-  background-color: #242424;
-  padding: 40px;
-  border-radius: 16px;
-  box-shadow: 0 0 8px rgba(255, 209, 0, 0.2);
-  width: 100%;
-  max-width: 420px;
-  margin: auto;
-  margin-top: 10vh;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.auth-container h2 {
-  text-align: center;
-  color: var(--yellow);
-  font-size: 1.8rem;
-  margin-bottom: 25px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  text-shadow: none;
-}
-
-.auth-container form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.auth-container input {
-  padding: 12px 14px;
-  border: 1px solid #444;
-  border-radius: 8px;
-  font-size: 1rem;
-  background-color: #1a1a1a;
-  color: var(--text-light);
-  transition: all 0.2s ease;
-}
-
-.auth-container input:focus {
-  outline: none;
-  border-color: var(--yellow);
-  background-color: #202020;
-}
-
-.auth-container button {
-  padding: 12px;
-  font-weight: 600;
-  font-size: 1rem;
-  border: 2px solid var(--yellow);
-  background-color: transparent;
-  color: var(--yellow);
-  border-radius: 30px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.auth-container button:hover {
-  background-color: var(--yellow);
-  color: var(--bg-dark);
-  box-shadow: 0 0 10px rgba(255, 209, 0, 0.4);
-}
-
-.auth-container .toggle {
-  text-align: center;
-  margin-top: 20px;
-  font-size: 0.9rem;
-  color: #aaa;
-}
-
-.auth-container .toggle a {
-  color: var(--yellow);
-  font-weight: 500;
-  text-decoration: none;
-}
-
-.auth-container .toggle a:hover {
-  text-decoration: underline;
-}
-/* === Layout principal avec sidebar === */
-.dashboard-layout {
+.dashboard {
   display: flex;
   min-height: 100vh;
 }
 
-/* === Sidebar === */
-.dashboard-sidebar {
+.sidebar {
   width: 220px;
-  background-color: #181818;
-  padding: 30px 20px;
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
-  color: var(--text-light);
+  background-color: var(--secondary-background);
+  padding: 20px;
 }
 
-.dashboard-sidebar h2 {
-  color: var(--yellow);
-  font-size: 1.5rem;
+.sidebar img {
+  width: 140px;
+  display: block;
+  margin: 0 auto 15px;
+}
+
+.sidebar h2 {
+  color: var(--primary-color);
+  text-align: center;
   margin-bottom: 30px;
 }
 
-.dashboard-sidebar nav ul {
+.sidebar nav ul {
   list-style: none;
   padding: 0;
 }
 
-.dashboard-sidebar nav li {
+.sidebar nav ul li {
   margin-bottom: 15px;
 }
 
-.dashboard-sidebar nav a {
-  color: #ddd;
+.sidebar nav ul li a {
+  color: var(--text-color);
   text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
 }
 
-.dashboard-sidebar nav a:hover {
-  color: var(--yellow);
+.sidebar nav ul li a i {
+  margin-right: 10px;
+  color: var(--primary-color);
 }
 
-/* === Contenu principal du dashboard === */
-.dashboard-main {
+.main {
   flex: 1;
-  padding: 40px 30px;
+  padding: 40px;
 }
 
-/* === Responsive mobile === */
+.main header h1 {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.wallet-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.wallet-info button {
+  background-color: var(--primary-color);
+  color: #fff;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background-color: var(--secondary-background);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+}
+
+.card h2 {
+  margin-top: 0;
+  color: var(--primary-color);
+  margin-bottom: 15px;
+}
+
+.card p.solde {
+  font-size: 2.5rem;
+  font-weight: bold;
+}
+
+.btn {
+  display: inline-block;
+  margin: 5px 0;
+  padding: 10px 20px;
+  background-color: var(--primary-color);
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.btn:hover {
+  background-color: #a30c20;
+}
+
+ul.activity-log {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+ul.activity-log li {
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+}
+
+.qr-img {
+  width: 100px;
+  height: 100px;
+  background: #fff;
+  margin-top: 10px;
+}
+
+/* Responsive mobile */
 @media (max-width: 768px) {
-  .dashboard-layout {
+  .dashboard {
     flex-direction: column;
   }
 
-  .dashboard-sidebar {
+  .sidebar {
     width: 100%;
-    border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   }
 
-  .dashboard-main {
+  .main {
     padding: 20px;
   }
 }

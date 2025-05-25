@@ -9,6 +9,7 @@ const path = require('path');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const crypto = require('crypto');
+const { ethers } = require('ethers');  // Pour la vérification de signature
 const sendVerificationEmail = require('./utils/sendEmail');
 
 const app = express();
@@ -119,18 +120,12 @@ app.post('/login', async (req, res) => {
   email = email.trim();
   password = password.trim();
 
-  console.log("🟡 Tentative de connexion :", email, password);
-
   try {
     const user = await User.findOne({ email });
-    console.log("👤 Utilisateur trouvé :", user);
-
     if (!user) return res.status(400).send('Utilisateur non trouvé');
     if (!user.isVerified) return res.status(403).send('Compte non vérifié. Vérifie ta boîte mail.');
 
     const isMatch = await bcrypt.compare(password, user.password);
-    console.log("🔐 Résultat comparaison bcrypt :", isMatch);
-
     if (!isMatch) return res.status(400).send('Mot de passe incorrect');
 
     req.session.user = user._id;
@@ -156,35 +151,41 @@ app.get('/me', async (req, res) => {
   }
 });
 
-// 🔗 Lier un wallet
+// 🔗 Lier un wallet (avec vérification de signature)
 app.post('/link-wallet', async (req, res) => {
   try {
     const userId = req.session.user;
-    const { wallet } = req.body;
+    const { wallet, signature, message } = req.body;
 
-    if (!userId || !wallet) {
-      return res.status(400).send("Requête incomplète");
+    if (!userId || !wallet || !signature || !message) {
+      return res.status(400).json({ error: "Requête incomplète" });
     }
 
+    // Vérifier la signature avec ethers.js
+    const recoveredAddress = ethers.utils.verifyMessage(message, signature);
+
+    if (recoveredAddress.toLowerCase() !== wallet.toLowerCase()) {
+      return res.status(401).json({ error: "Signature invalide" });
+    }
+
+    // Signature valide : lier le wallet à l'utilisateur
     await User.findByIdAndUpdate(userId, { wallet });
-    res.status(200).send("Wallet lié avec succès !");
+    res.status(200).json({ message: "Wallet lié avec succès et signature vérifiée !" });
   } catch (err) {
     console.error(err);
-    res.status(500).send("Erreur serveur");
+    res.status(500).json({ error: "Erreur serveur" });
   }
 });
 
-// 💸 API ACHAT DE NORM
+// API d'achat (fictive pour test)
 app.post('/api/buy', (req, res) => {
   console.log("Achat de NORM demandé:", req.body);
-  // Logique d'achat fictive ou réelle ici...
   res.json({ message: 'Achat de NORM validé !' });
 });
 
-// 💸 API ENVOI DE NORM
+// API d'envoi (fictive pour test)
 app.post('/api/send', (req, res) => {
   console.log("Envoi de NORM demandé:", req.body);
-  // Logique d'envoi fictive ou réelle ici...
   res.json({ message: 'Envoi de NORM effectué !' });
 });
 
