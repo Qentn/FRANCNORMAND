@@ -169,7 +169,7 @@ app.post('/link-wallet', async (req, res) => {
     }
 
     // Vérifier la signature avec ethers.js
-    const recoveredAddress = ethers.utils.verifyMessage(message, signature);
+     const recoveredAddress = ethers.verifyMessage(message, signature);
 
     if (recoveredAddress.toLowerCase() !== wallet.toLowerCase()) {
       return res.status(401).json({ error: "Signature invalide" });
