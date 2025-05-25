@@ -144,12 +144,19 @@ app.get('/me', async (req, res) => {
     const user = await User.findById(req.session.user).select('-password');
     if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
 
-    res.json(user);
+    // Supposons que tu as un champ `solde` dans le modèle User
+    const soldeNorm = user.solde || 0; // Ou récupéré ailleurs si nécessaire
+
+    res.json({
+      wallet: user.wallet,
+      solde: soldeNorm
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+
 
 // 🔗 Lier un wallet (avec vérification de signature)
 app.post('/link-wallet', async (req, res) => {

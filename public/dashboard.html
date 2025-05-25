@@ -153,6 +153,13 @@
       height: 100px;
       background: #fff;
       margin-top: 10px;
+      display: block;
+    }
+
+    .qr-placeholder {
+      font-size: 0.9rem;
+      color: #555;
+      margin-top: 10px;
     }
   </style>
 </head>
@@ -175,9 +182,8 @@
       <header>
         <h1>Bienvenue</h1>
         <div class="wallet-info">
-          <span id="walletAddress">0xabcdef1234567890abcdef1234567890abcdef12</span>
+          <span id="walletAddress"></span>
           <button onclick="copyWallet()">Copier</button>
-          <button id="linkWalletBtn">Lier mon portefeuille</button>
           <a href="#" style="color: var(--primary-color); font-size: 0.8rem;">Voir le QR code correspondant</a>
         </div>
       </header>
@@ -185,7 +191,7 @@
       <div class="grid">
         <div class="card">
           <h2>Solde actuel</h2>
-          <p class="solde">1520000.34 NORM</p>
+          <p id="solde" class="solde">Chargement...</p>
         </div>
 
         <div class="card">
@@ -205,7 +211,8 @@
 
         <div class="card">
           <h2>QR Code</h2>
-          <img src="https://api.qrserver.com/v1/create-qr-code/?data=0xabcdef1234567890abcdef1234567890abcdef12&size=100x100" alt="QR Code" class="qr-img">
+          <img id="walletQrCode" src="" alt="QR Code" class="qr-img">
+          <div id="qrPlaceholder" class="qr-placeholder"></div>
         </div>
       </div>
     </main>
@@ -214,194 +221,79 @@
   <script>
     function copyWallet() {
       const walletText = document.getElementById('walletAddress').textContent;
-      navigator.clipboard.writeText(walletText).then(() => {
-        alert("Adresse copiée !");
-      }).catch(err => {
-        console.error("Erreur lors de la copie :", err);
-      });
+      if (walletText !== "Connecter votre portefeuille") {
+        navigator.clipboard.writeText(walletText).then(() => {
+          alert("Adresse copiée !");
+        }).catch(err => {
+          console.error("Erreur lors de la copie :", err);
+        });
+      } else {
+        alert("Aucune adresse à copier. Veuillez connecter votre portefeuille.");
+      }
     }
 
     function deconnexion() {
-      alert("Déconnecté !");
+      window.location.href = "/logout";
     }
-
-    document.getElementById('buyNorm').addEventListener('click', () => {
-      fetch('/api/buy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: 50 })
-      })
-      .then(response => response.json())
-      .then(data => alert(data.message || 'Achat effectué !'))
-      .catch(error => console.error('Erreur lors de l\'achat:', error));
-    });
-
-    document.getElementById('sendNorm').addEventListener('click', () => {
-      const recipient = prompt('Entrez l\'adresse du destinataire :');
-      const amount = prompt('Entrez le montant à envoyer :');
-
-      if (recipient && amount) {
-        fetch('/api/send', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ recipient, amount })
-        })
-        .then(response => response.json())
-        .then(data => alert(data.message || 'Envoi effectué !'))
-        .catch(error => console.error('Erreur lors de l\'envoi:', error));
-      }
-    });
-
-    document.getElementById('linkWalletBtn').addEventListener('click', async () => {
-      if (typeof window.ethereum !== 'undefined') {
-        try {
-          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-          const walletAddress = accounts[0];
-          const message = "Confirme que je suis bien le propriétaire de ce wallet pour FrancNormand";
-
-          const signature = await window.ethereum.request({
-            method: 'personal_sign',
-            params: [message, walletAddress]
-          });
-
-          const response = await fetch('/link-wallet', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ wallet: walletAddress, signature, message })
-          });
-
-          if (response.ok) {
-            alert('✅ Wallet lié avec succès et signature vérifiée !');
-            window.location.reload();
-          } else {
-            const data = await response.json();
-            alert(`❌ Erreur : ${data.error}`);
-          }
-        } catch (error) {
-          console.error(error);
-          alert('❌ Erreur lors de la récupération du wallet.');
-        }
-      } else {
-        alert('❌ MetaMask non détecté.');
-      }
-    });
 
     window.addEventListener('DOMContentLoaded', () => {
       fetch('/me')
         .then(response => response.json())
         .then(data => {
+          const walletAddressElement = document.getElementById('walletAddress');
+          const qrCodeElement = document.getElementById('walletQrCode');
+          const qrPlaceholder = document.getElementById('qrPlaceholder');
+          const soldeElement = document.getElementById('solde');
+
           if (data.wallet) {
-            document.getElementById('walletAddress').textContent = data.wallet;
+            walletAddressElement.textContent = data.wallet;
+            soldeElement.textContent = data.solde ? `${data.solde} NORM` : '0 NORM';
+
+            const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(data.wallet)}&size=100x100`;
+            qrCodeElement.src = qrCodeUrl;
+            qrPlaceholder.textContent = "";
+          } else {
+            walletAddressElement.innerHTML = `<button id="linkWalletBtn" class="btn">Connecter votre portefeuille</button>`;
+            soldeElement.textContent = "Connectez votre portefeuille";
+            qrCodeElement.src = "";
+            qrPlaceholder.textContent = "👉 Connectez votre portefeuille pour voir votre QR code !";
+
+            document.getElementById('linkWalletBtn').addEventListener('click', async () => {
+              if (typeof window.ethereum !== 'undefined') {
+                try {
+                  const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                  const walletAddress = accounts[0];
+                  const message = "Confirme que je suis bien le propriétaire de ce wallet pour FrancNormand";
+                  const signature = await window.ethereum.request({
+                    method: 'personal_sign',
+                    params: [message, walletAddress]
+                  });
+
+                  const response = await fetch('/link-wallet', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ wallet: walletAddress, signature, message })
+                  });
+
+                  if (response.ok) {
+                    alert('✅ Wallet lié avec succès et signature vérifiée !');
+                    window.location.reload();
+                  } else {
+                    const data = await response.json();
+                    alert(`❌ Erreur : ${data.error}`);
+                  }
+                } catch (error) {
+                  console.error(error);
+                  alert('❌ Erreur lors de la récupération du wallet.');
+                }
+              } else {
+                alert('❌ MetaMask non détecté.');
+              }
+            });
           }
         })
         .catch(err => console.error('Erreur lors du chargement des infos:', err));
     });
   </script>
-  <script>
-  // Fonction copier (déjà là)
-  function copyWallet() { /* inchangé */ }
-
-  function deconnexion() {
-    window.location.href = "/logout";
-  }
-
-  // Bouton "Acheter"
-  document.getElementById('buyNorm').addEventListener('click', () => {
-    const amount = prompt('Montant de NORM à acheter :');
-    if (amount) {
-      fetch('/api/buy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount })
-      })
-      .then(response => response.json())
-      .then(data => alert(data.message || 'Achat effectué !'))
-      .catch(error => console.error('Erreur lors de l\'achat:', error));
-    }
-  });
-
-  // Bouton "Envoyer"
-  document.getElementById('sendNorm').addEventListener('click', () => {
-    const recipient = prompt('Adresse du destinataire :');
-    const amount = prompt('Montant à envoyer :');
-
-    if (recipient && amount) {
-      fetch('/api/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ recipient, amount })
-      })
-      .then(response => response.json())
-      .then(data => alert(data.message || 'Envoi effectué !'))
-      .catch(error => console.error('Erreur lors de l\'envoi:', error));
-    }
-  });
-
-  // Bouton "Lier mon portefeuille"
-  document.getElementById('linkWalletBtn').addEventListener('click', async () => {
-    if (typeof window.ethereum !== 'undefined') {
-      try {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        const walletAddress = accounts[0];
-        const message = "Confirme que je suis bien le propriétaire de ce wallet pour FrancNormand";
-
-        const signature = await window.ethereum.request({
-          method: 'personal_sign',
-          params: [message, walletAddress]
-        });
-
-        const response = await fetch('/link-wallet', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ wallet: walletAddress, signature, message })
-        });
-
-        if (response.ok) {
-          alert('✅ Wallet lié avec succès et signature vérifiée !');
-          window.location.reload();
-        } else {
-          const data = await response.json();
-          alert(`❌ Erreur : ${data.error}`);
-        }
-      } catch (error) {
-        console.error(error);
-        alert('❌ Erreur lors de la récupération du wallet.');
-      }
-    } else {
-      alert('❌ MetaMask non détecté.');
-    }
-  });
-
-  // "Nous contacter" - pour l'exemple, pop-up
-  document.querySelector('.sidebar a[href="#"]:has(i.fa-envelope)').addEventListener('click', (e) => {
-    e.preventDefault();
-    alert("Contactez-nous à contact@francnormand.com !");
-  });
-
-  // "Qui sommes-nous" - pour l'exemple, pop-up
-  document.querySelector('.sidebar a[href="#"]:has(i.fa-users)').addEventListener('click', (e) => {
-    e.preventDefault();
-    alert("FrancNormand est un projet de cryptomonnaie régionale pour la Normandie !");
-  });
-
-  // "Mentions légales" - pour l'exemple, redirection
-  document.querySelector('.sidebar a[href="#"]:has(i.fa-gavel)').addEventListener('click', (e) => {
-    e.preventDefault();
-    window.location.href = "/mentions-legales.html";
-  });
-
-  // Mise à jour dynamique de l'adresse wallet affichée
-  window.addEventListener('DOMContentLoaded', () => {
-    fetch('/me')
-      .then(response => response.json())
-      .then(data => {
-        if (data.wallet) {
-          document.getElementById('walletAddress').textContent = data.wallet;
-        }
-      })
-      .catch(err => console.error('Erreur lors du chargement des infos:', err));
-  });
-</script>
-
 </body>
 </html>
