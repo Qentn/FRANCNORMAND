@@ -9,7 +9,7 @@ const path = require('path');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const crypto = require('crypto');
-const ethers = require('ethers'); // Pour la vérification de signature
+const ethers = require('ethers'); // Pour la vérification de signature + blockchain
 const sendVerificationEmail = require('./utils/sendEmail');
 
 const app = express();
@@ -46,7 +46,11 @@ mongoose.connect(process.env.MONGODB_URI)
 
 // === MODÈLE UTILISATEUR ET TRANSACTION ===
 const User = require('./models/user');
-const Transaction = require('./models/transaction'); // 👈 Ajout du modèle Transaction
+const Transaction = require('./models/transaction');
+
+// === CONFIG Ethers.js POUR LA BLOCKCHAIN ===
+const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
+const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 
 // === ROUTES ===
 
@@ -166,19 +170,19 @@ app.get('/me', async (req, res) => {
 app.post('/link-wallet', async (req, res) => {
   try {
     const userId = req.session.user;
-    const { wallet, signature, message } = req.body;
+    const { wallet: walletAddr, signature, message } = req.body;
 
-    if (!userId || !wallet || !signature || !message) {
+    if (!userId || !walletAddr || !signature || !message) {
       return res.status(400).json({ error: "Requête incomplète" });
     }
 
     const recoveredAddress = ethers.verifyMessage(message, signature);
 
-    if (recoveredAddress.toLowerCase() !== wallet.toLowerCase()) {
+    if (recoveredAddress.toLowerCase() !== walletAddr.toLowerCase()) {
       return res.status(401).json({ error: "Signature invalide" });
     }
 
-    await User.findByIdAndUpdate(userId, { wallet });
+    await User.findByIdAndUpdate(userId, { wallet: walletAddr });
     res.status(200).json({ message: "Wallet lié avec succès et signature vérifiée !" });
   } catch (err) {
     console.error(err);
@@ -186,16 +190,35 @@ app.post('/link-wallet', async (req, res) => {
   }
 });
 
-// API d'achat (fictive pour test)
-app.post('/api/buy', (req, res) => {
-  console.log("Achat de NORM demandé:", req.body);
-  res.json({ message: 'Achat de NORM validé !' });
+// ✅ NOUVELLES ROUTES BLOCKCHAIN
+
+// Vérifier le solde ETH du wallet
+app.get('/balance', async (req, res) => {
+  try {
+    const balance = await provider.getBalance(wallet.address);
+    res.json({ address: wallet.address, balance: ethers.formatEther(balance) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur lors de la récupération du solde" });
+  }
 });
 
-// API d'envoi (fictive pour test)
-app.post('/api/send', (req, res) => {
-  console.log("Envoi de NORM demandé:", req.body);
-  res.json({ message: 'Envoi de NORM effectué !' });
+// Envoyer des ETH depuis le wallet (⚠️ testnet seulement)
+app.post('/send', async (req, res) => {
+  const { to, amount } = req.body;
+  if (!to || !amount) return res.status(400).json({ error: "Destinataire et montant requis" });
+
+  try {
+    const tx = await wallet.sendTransaction({
+      to,
+      value: ethers.parseEther(amount),
+    });
+    await tx.wait();
+    res.json({ txHash: tx.hash });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur lors de l'envoi" });
+  }
 });
 
 // Déconnexion

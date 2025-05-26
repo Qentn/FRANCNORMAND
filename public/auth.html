@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -5,6 +6,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Connexion | FrancNormand</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    .auth-container input[type="email"],
+    .auth-container input[type="password"] {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ccc;
+      border-radius: 30px;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+      line-height: 1.2;
+      height: 40px;
+      box-sizing: border-box;
+    }
+    .toggle-password-btn {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 1.1rem;
+      color: #c8102e;
+      padding: 0;
+      height: 30px;
+      width: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
 </head>
 <body>
   <div class="auth-container">
@@ -14,7 +46,7 @@
       
       <div style="position: relative;">
         <input type="password" id="login-password" name="password" placeholder="Mot de passe" required />
-        <button type="button" onclick="togglePassword('login-password')" style="position: absolute; right: 0;">👁</button>
+        <button type="button" onclick="togglePassword('login-password')" class="toggle-password-btn">👁</button>
       </div>
       
       <button type="submit">Se connecter</button>

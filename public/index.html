@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -5,12 +6,106 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FrancNormand - Crypto Régionale</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+    .slider {
+      display: flex;
+      flex-wrap: nowrap;
+      overflow: hidden;
+      width: 100%;
+      height: 100vh;
+    }
+    .slide {
+      flex: 0 0 100%;
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+    }
+    .slide-content {
+      background: rgba(0, 0, 0, 0.3);
+      color: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 90vw;
+      box-sizing: border-box;
+    }
+    .slide-content h1 {
+      color: #c8102e;
+      text-shadow:
+        -1px -1px 0 #ffffff,
+         1px -1px 0 #ffffff,
+        -1px  1px 0 #ffffff,
+         1px  1px 0 #ffffff; /* Crée un liseré blanc autour des lettres */
+    }
+    .slide-content p {
+      color: #f0f0f0;
+    }
+    .btn {
+      background-color: #c8102e;
+      color: #ffffff;
+      border: none;
+      border-radius: 20px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+    .btn:hover {
+      background-color: #a30c20;
+    }
+    .pagination {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 5px;
+    }
+    .pagination button {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: none;
+      background: #fff;
+      opacity: 0.5;
+      cursor: pointer;
+    }
+    .pagination button.active {
+      opacity: 1;
+    }
+    .slide-counter {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      font-size: 0.8rem;
+      color: #fff;
+      background: rgba(0,0,0,0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    @media (max-width: 768px) {
+      .slide-content h1 {
+        font-size: 1.5rem;
+      }
+      .slide-content p {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
 </head>
 <body>
 
   <!-- Carrousel -->
   <div class="slider" id="slider">
-    <section class="slide" style="background-image: url('https://images.pexels.com/photos/29033817/pexels-photo-29033817.jpeg')">
+    <section class="slide" style="background-image: url('https://www.le-mont-saint-michel.com/app/uploads/2024/01/nuit-maree-basse-mont-saint-michel-scaled.jpeg')">
       <div class="slide-content">
         <h1>FrancNormand (NORM)</h1>
         <p>La crypto-monnaie régionale qui unit la Normandie et sa communauté.</p>
@@ -34,6 +129,7 @@
   </div>
 
   <div class="pagination" id="pagination"></div>
+  <div class="slide-counter" id="slide-counter"></div>
 
   <!-- Scripts -->
   <script src="/script.js"></script>
@@ -41,6 +137,7 @@
     const slider = document.getElementById('slider');
     const slides = slider.querySelectorAll('.slide');
     const pagination = document.getElementById('pagination');
+    const counter = document.getElementById('slide-counter');
     let currentIndex = 0;
 
     function goToSlide(index) {
@@ -52,12 +149,17 @@
         behavior: 'smooth'
       });
       updatePagination();
+      updateCounter();
     }
 
     function updatePagination() {
       [...pagination.children].forEach((btn, i) => {
         btn.classList.toggle('active', i === currentIndex);
       });
+    }
+
+    function updateCounter() {
+      counter.textContent = (currentIndex + 1) + '/' + slides.length;
     }
 
     slides.forEach((_, i) => {
@@ -67,6 +169,7 @@
     });
 
     updatePagination();
+    updateCounter();
 
     let startX = 0;
     let isDown = false;
