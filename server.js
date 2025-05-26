@@ -127,7 +127,12 @@ app.post('/login', async (req, res) => {
 
   try {
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).send('Utilisateur non trouvé');
+    if (!user) {
+      return res.status(404).send('Cet email n’est pas encore inscrit. Inscrivez-vous !');
+    }
+    if (!user.isVerified) {
+      return res.status(403).send('Compte non vérifié. Vérifie ta boîte mail.');
+    }
     if (!user.isVerified) return res.status(403).send('Compte non vérifié. Vérifie ta boîte mail.');
 
     const isMatch = await bcrypt.compare(password, user.password);

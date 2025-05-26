@@ -36,19 +36,26 @@
       align-items: center;
       justify-content: center;
     }
+    .error-message {
+      background-color: #ffcccc;
+      color: #c8102e;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+    }
   </style>
 </head>
 <body>
   <div class="auth-container">
     <h2>Connexion</h2>
-    <form action="/login" method="POST">
+    <form id="login-form">
       <input type="email" name="email" placeholder="Email" required />
-      
       <div style="position: relative;">
         <input type="password" id="login-password" name="password" placeholder="Mot de passe" required />
         <button type="button" onclick="togglePassword('login-password')" class="toggle-password-btn">👁</button>
       </div>
-      
+      <div id="login-error" class="error-message" style="display: none;"></div>
       <button type="submit">Se connecter</button>
     </form>
     <div class="toggle">
@@ -61,6 +68,38 @@
       const input = document.getElementById(id);
       input.type = input.type === "password" ? "text" : "password";
     }
+
+    document.getElementById('login-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const email = this.email.value.trim();
+      const password = this.password.value.trim();
+      const errorDiv = document.getElementById('login-error');
+      errorDiv.style.display = 'none';
+      errorDiv.textContent = '';
+
+      try {
+        const res = await fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        if (res.ok) {
+          window.location.href = '/dashboard.html';
+        } else {
+          const msg = await res.text();
+          errorDiv.style.display = 'block';
+          errorDiv.textContent = '❌ ' + msg;
+          if (res.status === 404) {
+            errorDiv.innerHTML += ' <a href="/register.html">S’inscrire</a>';
+          }
+        }
+      } catch (err) {
+        errorDiv.style.display = 'block';
+        errorDiv.textContent = '❌ Erreur réseau.';
+        console.error(err);
+      }
+    });
   </script>
 </body>
 </html>
