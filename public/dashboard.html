@@ -223,112 +223,82 @@
     </main>
   </div>
 
-  <script>
-    function copyWallet() {
-      const walletText = document.getElementById('walletAddress').textContent;
-      if (walletText !== "Connecter votre portefeuille") {
-        navigator.clipboard.writeText(walletText).then(() => {
-          alert("Adresse copiée !");
-        }).catch(err => {
-          console.error("Erreur lors de la copie :", err);
-        });
-      } else {
-        alert("Aucune adresse à copier. Veuillez connecter votre portefeuille.");
-      }
+  
+  
+
+
+
+<script src="https://cdn.ethers.io/lib/ethers-5.6.umd.min.js"></script>
+<script>
+  let provider;
+  let signer;
+  let contract;
+
+  const contractABI = [
+    "function balanceOf(address) view returns (uint)",
+    "function transfer(address to, uint amount) returns (bool)"
+  ];
+
+  const contractAddress = "0xTonAdresseDeContrat"; // Remplace par ton adresse réelle !
+
+  // Initialisation de la connexion à MetaMask et affichage des informations principales
+  async function initBlockchainConnection() {
+    if (typeof window.ethereum === 'undefined') {
+      document.getElementById('solde').textContent = "MetaMask non détecté";
+      return;
     }
 
-    function deconnexion() {
-      window.location.href = "/logout";
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    try {
+      await provider.send("eth_requestAccounts", []);
+      signer = provider.getSigner();
+      const walletAddress = await signer.getAddress();
+      document.getElementById('walletAddress').textContent = walletAddress;
+
+      contract = new ethers.Contract(contractAddress, contractABI, signer);
+
+      await updateBalance(walletAddress);
+      generateQrCode(walletAddress);
+    } catch (err) {
+      console.error(err);
+      alert("Erreur lors de la connexion à MetaMask.");
     }
+  }
 
-    window.addEventListener('DOMContentLoaded', () => {
-      fetch('/me')
-        .then(response => response.json())
-        .then(data => {
-          const walletAddressElement = document.getElementById('walletAddress');
-          const qrCodeElement = document.getElementById('walletQrCode');
-          const qrPlaceholder = document.getElementById('qrPlaceholder');
-          const soldeElement = document.getElementById('solde');
-          const activityLog = document.getElementById('activityLog');
+  // Met à jour le solde à partir de la blockchain
+  async function updateBalance(address) {
+    const balance = await contract.balanceOf(address);
+    document.getElementById('solde').textContent = ethers.utils.formatUnits(balance, 18) + " NORM";
+  }
 
-          if (data.wallet) {
-            walletAddressElement.textContent = data.wallet;
-            soldeElement.textContent = data.solde ? `${data.solde} NORM` : '0 NORM';
+  // Génère un QR code pour le wallet connecté
+  function generateQrCode(address) {
+    document.getElementById('walletQrCode').src =
+      `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(address)}&size=100x100`;
+    document.getElementById('qrPlaceholder').textContent = "";
+  }
 
-            const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(data.wallet)}&size=100x100`;
-            qrCodeElement.src = qrCodeUrl;
-            qrPlaceholder.textContent = "";
+  // Copie l'adresse du portefeuille
+  function copyWallet() {
+    const walletText = document.getElementById('walletAddress').textContent;
+    if (walletText !== "Connecter votre portefeuille") {
+      navigator.clipboard.writeText(walletText).then(() => {
+        alert("Adresse copiée !");
+      }).catch(err => {
+        console.error("Erreur lors de la copie :", err);
+      });
+    } else {
+      alert("Aucune adresse à copier. Veuillez connecter votre portefeuille.");
+    }
+  }
 
-            if (data.transactions && data.transactions.length > 0) {
-              activityLog.innerHTML = "";
-              data.transactions.forEach(tx => {
-                const sign = tx.type === 'receive' ? '+' : '-';
-                const addressShort = tx.address ? `${tx.address.slice(0, 5)}...` : '';
-                const line = `<li>${sign}${tx.amount} NORM - ${tx.type} ${addressShort}</li>`;
-                activityLog.innerHTML += line;
-              });
-            } else {
-              activityLog.innerHTML = "<li>Aucune transaction pour le moment</li>";
-            }
-          } else {
-            walletAddressElement.innerHTML = `<button id="linkWalletBtn" class="btn">Connecter votre portefeuille</button>`;
-            soldeElement.textContent = "Connectez votre portefeuille";
-            qrCodeElement.src = "";
-            qrPlaceholder.textContent = "👉 Connectez votre portefeuille pour voir votre QR code !";
-            activityLog.innerHTML = "<li>Connectez votre portefeuille pour voir vos transactions</li>";
+  // Déconnecte l'utilisateur
+  function deconnexion() {
+    window.location.href = "/logout";
+  }
 
-            document.getElementById('linkWalletBtn').addEventListener('click', async () => {
-              if (typeof window.ethereum !== 'undefined') {
-                try {
-                  const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                  const walletAddress = accounts[0];
-                  const message = "Confirme que je suis bien le propriétaire de ce wallet pour FrancNormand";
-                  const signature = await window.ethereum.request({
-                    method: 'personal_sign',
-                    params: [message, walletAddress]
-                  });
-
-                  const response = await fetch('/link-wallet', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ wallet: walletAddress, signature, message })
-                  });
-
-                  if (response.ok) {
-                    alert('✅ Wallet lié avec succès et signature vérifiée !');
-                    window.location.reload();
-                  } else {
-                    const data = await response.json();
-                    alert(`❌ Erreur : ${data.error}`);
-                  }
-                } catch (error) {
-                  console.error(error);
-                  alert('❌ Erreur lors de la récupération du wallet.');
-                }
-              } else {
-                alert('❌ MetaMask non détecté.');
-              }
-            });
-          }
-        })
-        .catch(err => {
-          console.error('Erreur lors du chargement des infos:', err);
-          alert('❌ Impossible de charger les informations du portefeuille. Réessayez plus tard.');
-        });
-    });
-  </script>
-  <script>
-  document.getElementById('buyNorm').addEventListener('click', async () => {
-    const response = await fetch('/api/buy', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount: 1 }) // exemple d'achat
-    });
-    const data = await response.json();
-    alert(data.message);
-  });
-
-  document.getElementById('sendNorm').addEventListener('click', async () => {
+  // Envoie des tokens via le smart contract
+  async function sendTokens() {
     const to = prompt("Adresse de destination :");
     const amount = prompt("Montant à envoyer :");
 
@@ -337,15 +307,24 @@
       return;
     }
 
-    const response = await fetch('/api/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ to, amount })
-    });
-    const data = await response.json();
-    alert(data.message);
-  });
+    try {
+      const tx = await contract.transfer(to, ethers.utils.parseUnits(amount, 18));
+      await tx.wait();
+      alert("✅ Transfert confirmé sur la blockchain !");
+      location.reload();
+    } catch (err) {
+      console.error(err);
+      alert("❌ Erreur lors du transfert : " + err.message);
+    }
+  }
+
+  // Initialiser la connexion à la blockchain au chargement de la page
+  document.addEventListener('DOMContentLoaded', initBlockchainConnection);
+
+  // Associer les boutons aux fonctions
+  document.getElementById('sendNorm').addEventListener('click', sendTokens);
 </script>
+
 
 </body>
 </html>

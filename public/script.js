@@ -1,45 +1,120 @@
-document.addEventListener("DOMContentLoaded", () => {
-  // Simuler les données utilisateur
-  const user = {
-    username: "JeanDupont",
-    balance: 150.75,
-    walletId: "NORM-239ABX091"
-  };
+// === script.js corrigé ===
 
-  // Afficher les infos portefeuille si l'élément existe
-  const walletInfoEl = document.getElementById("walletInfo");
-  if (walletInfoEl) {
-    walletInfoEl.innerHTML = `
-      Bonjour <strong>${user.username}</strong> !<br>
-      Solde : <strong>${user.balance} NORM</strong><br>
-      ID Portefeuille : <code>${user.walletId}</code>
-    `;
+// Vérifie la connexion à MetaMask et initialise les variables
+let provider;
+let signer;
+let contract;
+
+const contractABI = [
+  "function balanceOf(address) view returns (uint)",
+  "function transfer(address to, uint amount) returns (bool)"
+];
+
+const contractAddress = "0xTonAdresseDeContrat"; // Remplace par ton adresse réelle !
+
+// Initialisation de la connexion à MetaMask et affichage des informations principales
+async function initBlockchainConnection() {
+  if (typeof window.ethereum === 'undefined') {
+    document.getElementById('solde').textContent = "MetaMask non détecté";
+    return;
   }
 
-  // Gestion du formulaire d’achat/vente si présent
-  const tradeForm = document.getElementById("tradeForm");
-  if (tradeForm) {
-    tradeForm.addEventListener("submit", (e) => {
-      e.preventDefault();
+  provider = new ethers.providers.Web3Provider(window.ethereum);
+  try {
+    await provider.send("eth_requestAccounts", []);
+    signer = provider.getSigner();
+    const walletAddress = await signer.getAddress();
+    document.getElementById('walletAddress').textContent = walletAddress;
 
-      const action = document.getElementById("action").value;
-      const amount = parseFloat(document.getElementById("amount").value);
+    contract = new ethers.Contract(contractAddress, contractABI, signer);
 
-      if (isNaN(amount) || amount <= 0) {
-        alert("Veuillez entrer un montant valide.");
-        return;
-      }
+    await updateBalance(walletAddress);
+    generateQrCode(walletAddress);
+  } catch (err) {
+    console.error(err);
+    alert("Erreur lors de la connexion à MetaMask.");
+  }
+}
 
-      if (action === "buy") {
-        alert(`Vous avez acheté ${amount} NORM !`);
-      } else if (action === "sell") {
-        alert(`Vous avez vendu ${amount} NORM !`);
-      }
+// Met à jour le solde à partir de la blockchain
+async function updateBalance(address) {
+  const balance = await contract.balanceOf(address);
+  document.getElementById('solde').textContent = ethers.utils.formatUnits(balance, 18) + " NORM";
+}
 
-      document.getElementById("amount").value = "";
+// Génère un QR code pour le wallet connecté
+function generateQrCode(address) {
+  document.getElementById('walletQrCode').src =
+    `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(address)}&size=100x100`;
+  document.getElementById('qrPlaceholder').textContent = "";
+}
+
+// Copie l'adresse du portefeuille
+function copyWallet() {
+  const walletText = document.getElementById('walletAddress').textContent;
+  if (walletText !== "Connecter votre portefeuille") {
+    navigator.clipboard.writeText(walletText).then(() => {
+      alert("Adresse copiée !");
+    }).catch(err => {
+      console.error("Erreur lors de la copie :", err);
     });
+  } else {
+    alert("Aucune adresse à copier. Veuillez connecter votre portefeuille.");
+  }
+}
+
+// Déconnecte l'utilisateur
+function deconnexion() {
+  window.location.href = "/logout";
+}
+
+// Envoie des tokens via le smart contract
+async function sendTokens() {
+  const to = prompt("Adresse de destination :");
+  const amount = prompt("Montant à envoyer :");
+
+  if (!to || !amount) {
+    alert("Destinataire et montant requis.");
+    return;
   }
 
-  // Log pour vérification
-  console.log("Script chargé. Utilisateur simulé :", user);
-});
+  try {
+    const tx = await contract.transfer(to, ethers.utils.parseUnits(amount, 18));
+    await tx.wait();
+    alert("✅ Transfert confirmé sur la blockchain !");
+    location.reload();
+  } catch (err) {
+    console.error(err);
+    alert("❌ Erreur lors du transfert : " + err.message);
+  }
+}
+
+// Achat de NORM (envoi d'ETH au contrat)
+async function buyNorm() {
+  const amount = prompt("Montant d'ETH à échanger contre du NORM ?");
+  if (!amount) {
+    alert("Montant requis.");
+    return;
+  }
+
+  try {
+    const tx = await signer.sendTransaction({
+      to: contractAddress,
+      value: ethers.utils.parseEther(amount)
+    });
+    await tx.wait();
+    alert("✅ Achat confirmé sur la blockchain !");
+    location.reload();
+  } catch (err) {
+    console.error(err);
+    alert("❌ Erreur lors de l'achat : " + err.message);
+  }
+}
+
+// Initialiser la connexion à la blockchain au chargement de la page
+document.addEventListener('DOMContentLoaded', initBlockchainConnection);
+
+// Associer les boutons aux fonctions
+document.getElementById('sendNorm').addEventListener('click', sendTokens);
+document.getElementById('buyNorm').addEventListener('click', buyNorm);
+document.getElementById('walletAddress').addEventListener('click', copyWallet);
